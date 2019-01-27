@@ -51,11 +51,14 @@
     <input type="hidden" name="{{ name ~ '[' ~ index ~ '][' ~ block ~ ']' }}[__internal]" value="1">
 
     <div class="panel-body">
+        {% set currentgroup = false %}
+        {% set isgroupcollapsed = false %}
         {% set defaults = {
             class:      '',
             label:      '',
             variant:    '',
-            default:    null
+            default:    null,
+            group:      null
         } %}
         {% for rkey, rfield in field.fields[block].fields %}
             {% set rfield = defaults|merge(rfield) %}
@@ -75,6 +78,19 @@
                     'file_matcher': context.file_matcher,
                 }
             } %}
+
+            {% if rfield.group and rfield.group != currentgroup %}
+                {% if isgroupcollapsed %}
+                    <!-- end of collapse group '{{ currentgroup }}' -->
+                    {{ '</section>' }}
+                {% endif %}
+
+                <!-- start of collapse group '{{ rfield.group }}' -->
+                <p>Group: {{ rfield.group }}</p>
+                {{ '<section class="collapsed" style="outline: 1px solid red">' }}
+                {% set isgroupcollapsed = true %}
+            {% endif %}
+
             <div class="block-field" data-bolt-fieldset="{{ rfield.type }}">
                 {# Prefix #}
                 {% if rcontext.field.prefix is defined and rcontext.field.prefix is not empty %}
@@ -96,7 +112,15 @@
                 {% if rcontext.field.separator is defined and rcontext.field.separator == true %}
                     <hr>
                 {% endif %}
+
+                {% if rfield.group != null %}{% set currentgroup = rfield.group %}{% endif %}
             </div>
+            {% if (loop.last and (currentgroup or rfield.group))
+                or (currentgroup and rfield.group and rfield.group != currentgroup)
+            %}
+                <!-- end of collapsed group '{{ rfield.group|default(currentgroup) }}' -->
+                {{ '</section>' }}
+            {% endif %}
         {% endfor %}
     </div>
 </div>
