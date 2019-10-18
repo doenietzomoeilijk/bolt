@@ -126,6 +126,10 @@ final class Export
         $contentTypeBag = $exportData->get($contentTypeName);
 
         foreach ($entities as $key => $entity) {
+            if (!$entity->getSlug()) {
+                throw new StorageException("Cannot export an entity that does not have a slug. Check contenttype/id {$contentTypeName}/{$entity->id} to make sure it has one!");
+            }
+
             $this->addRecord($contentTypeBag, $metadata, $entity);
         }
 
